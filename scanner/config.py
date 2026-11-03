@@ -19,7 +19,8 @@ HISTORY_BARS = 500
 INTERVAL_SEC = 60
 FRESH_MIN = 20
 # ---------- Риск (динамический) ----------
-BALANCE_DEFAULT = float(os.getenv("BALANCE", "5000"))
+_bal_env = os.getenv("BALANCE", "5000").strip()
+BALANCE_DEFAULT = float(_bal_env) if _bal_env else 5000.0
 RISK_PCT = 1.0
 # ---------- Сетап №1 ----------
 SWEEP_SL_BUFFER_PIPS = 2
