@@ -130,21 +130,21 @@ def finalize_setup1(cand, dxy_closed, sent_keys):
     swept = "Asia High" if direction == "short" else "Asia Low"
     d1_info = cand["d1_info"]
     txt = (
-        f"⚡ <b>СЕТАП №1 (разворот Азии)</b> — {name} {side}\n"
-        f"Свип {swept}: {fmt(ext, pip)} → MSS на M5 → 5м FVG "
-        f"{fmt(bot, pip)}–{fmt(top, pip)} ({(top-bot)/pip:.1f} п.)\n"
-        f"SMT: DXY не подтвердил ✅\n"
-        f"HTF: State {d1_info['state']} (bias: {d1_info['bias']})\n"
-        f"Лимитка (0.5 FVG): <b>{fmt(entry, pip)}</b>\n"
-        f"SL: {fmt(sl, pip)} (~{risk:.1f} п.)\n"
-        f"TP: {fmt(tp, pip)} (~{reward:.1f} п., R:R {reward/risk:.1f})\n"
-        f"Midpoint Азии: {fmt(mid, pip)}\n"
-        f"Цена сейчас: {fmt(last, pip)}\n"
-        + lot_text(cfg, cand["balance"], risk)
-        + "\n\n<i>⚠️ Если после входа цена закроется за Midpoint Азии против тебя — "
-          "сожми SL до −5 п. от входа (Cushion SL)</i>\n"
-          "<i>⚠️ Проверь новости High Impact ±20 мин вручную</i>"
-    )
+    f"⚡  <b>СЕТАП №1 (разворот Азии)</b> — {name} {side}\n"
+    f"Свип {swept}: {fmt(ext, pip)} → MSS на M5 → 5м FVG "
+    f"{fmt(bot, pip)}–{fmt(top, pip)} ({(top-bot)/pip:.1f} п.)\n"
+    f"SMT: DXY не подтвердил ✅ \n"
+    f"HTF: State {d1_info['state']} (bias: {d1_info['bias']})\n"
+    f"Лимитка (0.5 FVG): <b>{fmt(entry, pip)}</b>\n"
+    f"SL: {fmt(sl, pip)} (~{risk:.1f} п.)\n"
+    f"TP: {fmt(tp, pip)} (~{reward:.1f} п., R:R {reward/risk:.1f})\n"
+    f"Midpoint Азии: {fmt(mid, pip)}\n"
+    f"Цена сейчас: {fmt(last, pip)}"
+    + lot_text(cfg, cand["balance"], risk)
+    + "\n\n<i>⚠️  Если после входа цена закроется за Midpoint Азии против тебя — "
+      "сожми SL до −5 п. от входа (Cushion SL)</i>\n"
+      "<i>⚠️  Проверь новости High Impact ±20 мин вручную</i>"
+)
     if telegram(txt):
         sent_keys.add(cand["key"])
         log(f"отправлен {cand['key']}")
