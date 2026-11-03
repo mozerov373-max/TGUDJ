@@ -1,0 +1,26 @@
+"""SMT-дивергенция: EURUSD/GBPUSD против DXY."""
+from datetime import timedelta
+import pandas as pd
+def smt_confirms(dxy_post: pd.DataFrame, _unused_asset: pd.DataFrame | None,
+                 asset_ext_price: float, direction: str,
+                 ext_time: pd.Timestamp) -> bool:
+    if dxy_post is None or dxy_post.empty:
+        return False
+    window_before = dxy_post[dxy_post.index < ext_time]
+    window_before = window_before[window_before.index >= ext_time - timedelta(hours=2)]
+    if len(window_before) < 5:
+        return False
+    if ext_time in dxy_post.index:
+        d_at = dxy_post.loc[ext_time]
+    else:
+        near = dxy_post[dxy_post.index <= ext_time]
+        if near.empty:
+            return False
+        d_at = near.iloc[-1]
+    if direction == "short":
+        d_low_before = window_before.l.min()
+        return float(d_at.l) > float(d_low_before) + 1e-9
+    if direction == "long":
+        d_high_before = window_before.h.max()
+        return float(d_at.h) < float(d_high_before) - 1e-9
+    return False

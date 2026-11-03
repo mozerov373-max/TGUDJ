@@ -1,0 +1,33 @@
+# AES Scanner — Altai Enduro Scalper
+Сканер сетапов №1 (разворот Азии) и №2 (продолжение) по EURUSD и GBPUSD.
+## Что делает
+- Работает 13:00–17:30 Барнаул (UTC+7), сетапы шлёт только 14:30–16:30 (Kill Zone)
+- Сетап №1: свип Asia High/Low → MSS на M5 → 5м FVG → SMT (DXY) → HTF-фильтр → лимитка на 0.5 FVG
+- Сетап №2: выход из широкой Азии без свипа + H1 FVG по ходу → SMT → HTF → вход по рынку
+- Фильтр H1-магнита (>5 п. против сделки → SKIP по ТЗ)
+- Cushion SL — отдельный алерт при пробое Midpoint Азии после входа
+- Динамический баланс — обновляется через workflow_dispatch (mode=balance)
+- DXY грузится ТОЛЬКО при наличии кандидата (экономия лимита TwelveData)
+## Настройка Secrets (Settings → Secrets and variables → Actions)
+| Secret | Обязательно | Описание |
+|  |  |  |
+| TELEGRAM_TOKEN | да | Токен бота (от @BotFather) |
+| TELEGRAM_CHAT_ID | да | ID чата (от @userinfobot) |
+| TWELVEDATA_KEY | да | API-ключ TwelveData (бесплатно 800/день) |
+| BALANCE | да | Начальный баланс (например, 5000) |
+## TwelveData
+1. Регистрация: https://twelvedata.com/register
+2. Бесплатный тариф: 800 запросов/день
+3. Расход: ~550/день (EURUSD + GBPUSD каждую минуту + DXY только при кандидате)
+## Запуск
+- Автоматически: пн–пт в 05:30 UTC (12:30 Барнаул)
+- Вручную: Actions → AES scanner → Run workflow → mode=test / scan / balance
+## Обновить баланс
+Actions → AES scanner → Run workflow → mode=balance, balance=5500
+## Локальный запуск
+Export TELEGRAM_TOKEN=…
+Export TELEGRAM_CHAT_ID=…
+Export TWELVEDATA_KEY=…
+Python -m scanner.main –test
+Python -m scanner.main –once
+Python -m scanner.main

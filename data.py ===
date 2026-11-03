@@ -1,0 +1,69 @@
+"""Загрузка OHLC-данных через TwelveData."""
+import time
+import requests
+import pandas as pd
+from datetime import datetime, timedelta
+from .config import TWELVEDATA_KEY, INTERVAL, HISTORY_BARS, TZ
+from .log import log
+_CACHE: dict[str, tuple[float, pd.DataFrame]] = {}
+CACHE_TTL = 50
+def fetch_5m(symbol: str) -> pd.DataFrame:
+    now_ts = time.time()
+    if symbol in _CACHE:
+        ts, df = _CACHE[symbol]
+        if now_ts - ts < CACHE_TTL:
+            return df
+    if not TWELVEDATA_KEY:
+        raise RuntimeError("TWELVEDATA_KEY не задан")
+    url = "https://api.twelvedata.com/time_series"
+    params = {
+        "symbol": symbol,
+        "interval": INTERVAL,
+        "outputsize": HISTORY_BARS,
+        "apikey": TWELVEDATA_KEY,
+        "timezone": "UTC",
+        "format": "JSON",
+    }
+    for attempt in range(3):
+        try:
+            r = requests.get(url, params=params, timeout=20)
+            data = r.json()
+            if data.get("status") == "error":
+                raise RuntimeError(f"TwelveData: {data.get('message')}")
+            vals = data.get("values")
+            if not vals:
+                raise RuntimeError(f"пустой ответ для {symbol}")
+            df = _to_df(vals)
+            _CACHE[symbol] = (now_ts, df)
+            return df
+        except Exception as e:
+            log(f"fetch_5m({symbol}) попытка {attempt+1}: {e}")
+            time.sleep(3)
+    raise RuntimeError(f"не удалось загрузить {symbol}")
+def _to_df(values: list[dict]) -> pd.DataFrame:
+    rows = []
+    for v in reversed(values):
+        rows.append({
+            "time": pd.Timestamp(v["datetime"], tz="UTC"),
+            "o": float(v["open"]),
+            "h": float(v["high"]),
+            "l": float(v["low"]),
+            "c": float(v["close"]),
+        })
+    df = pd.DataFrame(rows).set_index("time")
+    df.index = df.index.tz_convert(TZ)
+    df = df[~df.index.duplicated(keep="last")].sort_index()
+    return df
+def closed_only(df: pd.DataFrame, now: datetime) -> pd.DataFrame:
+    return df[df.index + timedelta(minutes=5) <= now]
+def mirror(df: pd.DataFrame) -> pd.DataFrame:
+    return pd.DataFrame(
+        {"o": -df.o, "h": -df.l, "l": -df.h, "c": -df.c},
+        index=df.index,
+    )
+def to_h1(df: pd.DataFrame, now: datetime) -> pd.DataFrame:
+    h1 = df.resample("1h").agg({"o": "first", "h": "max", "l": "min", "c": "last"}).dropna()
+    return h1[h1.index + timedelta(hours=1) <= now]
+def to_d1(df: pd.DataFrame, now: datetime) -> pd.DataFrame:
+    d1 = df.resample("1D").agg({"o": "first", "h": "max", "l": "min", "c": "last"}).dropna()
+    return d1[d1.index + timedelta(days=1) <= now]
