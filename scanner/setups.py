@@ -75,8 +75,7 @@ def find_setup1_candidate(name, cfg, closed, full, asia, now, d1_info, balance, 
 
     for direction in ("short", "long"):
         if direction == "short":
-            r = _detect_short_reversal(post, asia_end, asia_h, asia_l, pip,
-                                       MIN_FVG_PIPS[name])
+            r = _detect_short_reversal(post, asia_end, asia_h, asia_l, pip, MIN_FVG_PIPS[name])
             if not r:
                 continue
             ext = r["ext_price"]
@@ -85,8 +84,7 @@ def find_setup1_candidate(name, cfg, closed, full, asia, now, d1_info, balance, 
             entry = (top + bot) / 2
             sl = ext + SWEEP_SL_BUFFER_PIPS * pip
         else:
-            m = _detect_short_reversal(mirror(post), asia_end, -asia_l, -asia_h,
-                                       pip, MIN_FVG_PIPS[name])
+            m = _detect_short_reversal(mirror(post), asia_end, -asia_l, -asia_h, pip, MIN_FVG_PIPS[name])
             if not m:
                 continue
             r = m
@@ -118,8 +116,7 @@ def find_setup1_candidate(name, cfg, closed, full, asia, now, d1_info, balance, 
             log(f"{name} S1 {direction}: H1-магнит → SKIP")
             sent_keys.add(key)
             continue
-
-        return dict(
+            return dict(
             key=key, name=name, cfg=cfg, direction=direction,
             ext=ext, top=top, bot=bot, entry=entry, sl=sl, tp=tp,
             mid=mid, last=last, r=r, balance=balance,
@@ -127,7 +124,9 @@ def find_setup1_candidate(name, cfg, closed, full, asia, now, d1_info, balance, 
             ext_time=r["ext_time"],
         )
     return None
-    def finalize_setup1(cand, dxy_closed, sent_keys):
+
+
+def finalize_setup1(cand, dxy_closed, sent_keys):
     name = cand["name"]
     cfg = cand["cfg"]
     direction = cand["direction"]
@@ -193,8 +192,7 @@ def find_setup2_candidate(name, cfg, closed, full, asia, now, d1_info, balance, 
         return None
 
     post = closed[closed.index >= asia_end]
-    p0 = next((i for i in range(len(post))
-               if post.h.iloc[i] > asia_h or post.l.iloc[i] < asia_l), None)
+    p0 = next((i for i in range(len(post)) if post.h.iloc[i] > asia_h or post.l.iloc[i] < asia_l), None)
     if p0 is None:
         return None
         
@@ -218,9 +216,7 @@ def find_setup2_candidate(name, cfg, closed, full, asia, now, d1_info, balance, 
 
     h1 = to_h1(full, now)
     want = "up" if direction == "long" else "down"
-    cands = [g for g in h1_fvgs(h1)
-             if g["dir"] == want and g["mid_t"] >= asia_end - timedelta(hours=1)
-             and (g["top"] - g["bot"]) / pip >= H1_MIN_FVG_PIPS]
+    cands = [g for g in h1_fvgs(h1) if g["dir"] == want and g["mid_t"] >= asia_end - timedelta(hours=1) and (g["top"] - g["bot"]) / pip >= H1_MIN_FVG_PIPS]
              
     for g in reversed(cands):
         after = full[full.index >= g["end_t"]]
@@ -244,7 +240,6 @@ def find_setup2_candidate(name, cfg, closed, full, asia, now, d1_info, balance, 
             sl = asia_h + SETUP2_SL_PIPS * pip
             
         risk = abs(entry - sl) / pip
-        
         if direction == "long":
             hi = full.h.max()
             tp = float(hi) if hi > entry else None
