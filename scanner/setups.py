@@ -128,18 +128,28 @@ def find_setup1_candidate(name, cfg, closed, full, asia, now, d1_info, balance, 
         )
     return None
     def finalize_setup1(cand, dxy_closed, sent_keys):
-    name, cfg, direction = cand["name"], cand["cfg"], cand["direction"]
+    name = cand["name"]
+    cfg = cand["cfg"]
+    direction = cand["direction"]
     pip = cfg["pip"]
+    
     if dxy_closed is None or dxy_closed.empty:
         log(f"{name} S1 {direction}: нет DXY → пропуск SMT")
         return False
+        
     if not smt_confirms(dxy_closed, None, cand["ext"], direction, cand["ext_time"]):
         log(f"{name} S1 {direction}: SMT нет")
         return False
 
     last = cand["last"]
-    entry, sl, tp, mid = cand["entry"], cand["sl"], cand["tp"], cand["mid"]
-    top, bot, ext = cand["top"], cand["bot"], cand["ext"]
+    entry = cand["entry"]
+    sl = cand["sl"]
+    tp = cand["tp"]
+    mid = cand["mid"]
+    top = cand["top"]
+    bot = cand["bot"]
+    ext = cand["ext"]
+    
     risk = abs(entry - sl) / pip
     reward = abs(tp - entry) / pip
     side = "SHORT 🔴 " if direction == "short" else "LONG 🟢 "
@@ -162,6 +172,7 @@ def find_setup1_candidate(name, cfg, closed, full, asia, now, d1_info, balance, 
           "сожми SL до −5 п. от входа (Cushion SL)</i>\n"
           "<i>⚠️  Проверь новости High Impact ±20 мин вручную</i>"
     )
+    
     if telegram(txt):
         sent_keys.add(cand["key"])
         log(f"отправлен {cand['key']}")
@@ -173,7 +184,11 @@ def find_setup2_candidate(name, cfg, closed, full, asia, now, d1_info, balance, 
     pip = cfg["pip"]
     if not killzone_ok(now):
         return None
-    asia_h, asia_l, asia_end = asia["high"], asia["low"], asia["end"]
+        
+    asia_h = asia["high"]
+    asia_l = asia["low"]
+    asia_end = asia["end"]
+    
     if (asia_h - asia_l) / pip < WIDE_ASIA_PIPS[name]:
         return None
 
@@ -182,9 +197,11 @@ def find_setup2_candidate(name, cfg, closed, full, asia, now, d1_info, balance, 
                if post.h.iloc[i] > asia_h or post.l.iloc[i] < asia_l), None)
     if p0 is None:
         return None
+        
     b = post.iloc[p0]
     if b.h > asia_h and b.l < asia_l:
         return None
+        
     if b.h > asia_h and b.c > asia_h:
         direction = "long"
     elif b.l < asia_l and b.c < asia_l:
@@ -204,35 +221,46 @@ def find_setup2_candidate(name, cfg, closed, full, asia, now, d1_info, balance, 
     cands = [g for g in h1_fvgs(h1)
              if g["dir"] == want and g["mid_t"] >= asia_end - timedelta(hours=1)
              and (g["top"] - g["bot"]) / pip >= H1_MIN_FVG_PIPS]
+             
     for g in reversed(cands):
         after = full[full.index >= g["end_t"]]
         if after.empty:
             continue
-        touched = after[after.l <= g["top"]] if direction == "long" \
-            else after[after.h >= g["bot"]]
+            
+        touched = after[after.l <= g["top"]] if direction == "long" else after[after.h >= g["bot"]]
         if touched.empty:
             continue
+            
         t0 = touched.index[0]
         if now - t0 > timedelta(minutes=FRESH_MIN):
             continue
+            
         last = float(full.c.iloc[-1])
         entry = last
-        sl = asia_l - SETUP2_SL_PIPS * pip if direction == "long" \
-            else asia_h + SETUP2_SL_PIPS * pip
+        
+        if direction == "long":
+            sl = asia_l - SETUP2_SL_PIPS * pip
+        else:
+            sl = asia_h + SETUP2_SL_PIPS * pip
+            
         risk = abs(entry - sl) / pip
+        
         if direction == "long":
             hi = full.h.max()
             tp = float(hi) if hi > entry else None
         else:
             lo = full.l.min()
             tp = float(lo) if lo < entry else None
+            
         if tp is None:
             return None
+            
         reward = abs(tp - entry) / pip
         if reward < 2 * risk:
             log(f"{name} S2 skip: reward {reward:.0f} < 2×risk {risk:.0f}")
             sent_keys.add(key)
             return None
+            
         magnet = opposing_h1_magnet(full, direction, entry, tp, pip)
         if magnet and SKIP_ON_H1_MAGNET:
             log(f"{name} S2: H1-магнит → SKIP")
@@ -249,21 +277,29 @@ def find_setup2_candidate(name, cfg, closed, full, asia, now, d1_info, balance, 
 
 
 def finalize_setup2(cand, dxy_closed, sent_keys):
-    name, cfg, direction = cand["name"], cand["cfg"], cand["direction"]
+    name = cand["name"]
+    cfg = cand["cfg"]
+    direction = cand["direction"]
     pip = cfg["pip"]
+    
     if dxy_closed is None or dxy_closed.empty:
         log(f"{name} S2 {direction}: нет DXY → пропуск SMT")
         return False
+        
     if not smt_confirms(dxy_closed, None, cand["entry"], direction, cand["ext_time"]):
         log(f"{name} S2 {direction}: SMT нет")
         return False
 
-    entry, sl, tp = cand["entry"], cand["sl"], cand["tp"]
+    entry = cand["entry"]
+    sl = cand["sl"]
+    tp = cand["tp"]
+    
     risk = abs(entry - sl) / pip
     reward = abs(tp - entry) / pip
     side = "LONG 🟢 " if direction == "long" else "SHORT 🔴 "
     g = cand["g"]
-    asia_l, asia_h = cand["asia_l"], cand["asia_h"]
+    asia_l = cand["asia_l"]
+    asia_h = cand["asia_h"]
     d1_info = cand["d1_info"]
 
     txt = (
@@ -279,6 +315,7 @@ def finalize_setup2(cand, dxy_closed, sent_keys):
         + lot_text(cfg, cand["balance"], risk)
         + "\n\n<i>⚠️  Проверь новости High Impact ±20 мин вручную</i>"
     )
+    
     if telegram(txt):
         sent_keys.add(cand["key"])
         log(f"отправлен {cand['key']}")
