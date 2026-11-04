@@ -4,15 +4,16 @@ import requests
 from .config import TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
 from .log import log
 
-def telegram(text: str) -> bool:
-    # Очищаем токен и ID от случайных пробелов, которые мог добавить GitHub
-    token = str(TELEGRAM_TOKEN).strip()
-    chat_id = str(TELEGRAM_CHAT_ID).strip()
 
-    if not token or not chat_id or token == "None":
+def telegram(text: str) -> bool:
+    # Жесткая очистка от всех возможных пробелов и переносов строк
+    token = "".join(str(TELEGRAM_TOKEN).split())
+    chat_id = "".join(str(TELEGRAM_CHAT_ID).split())
+
+    if not token or not chat_id:
         log("[нет TELEGRAM_TOKEN/CHAT_ID]", text)
         return False
-        
+
     for _ in range(3):
         try:
             r = requests.post(
