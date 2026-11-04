@@ -1,4 +1,4 @@
-"""Оркестратор AES scanner — DXY грузится только при кандидате."""
+"""Оркестратор AES scanner — DXY только при кандидате."""
 import argparse
 import sys
 import time
