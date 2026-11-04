@@ -69,8 +69,8 @@ DXY_SYMBOL = dict(
 )
 
 # ---------- Telegram (с очисткой от пробелов) ----------
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "").strip()
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "").strip()
+TELEGRAM_TOKEN = "9138322774:AAHzyzJBeDKPWnSwx1INRSp3NKSOwPJCbjM"
+TELEGRAM_CHAT_ID = "9138322774"
 
 # ---------- State ----------
 STATE_FILE = os.getenv("STATE_FILE", "state.json")
