@@ -28,8 +28,6 @@ jobs:
 
       - name: Run scanner
         env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          TWELVEDATA_KEY: ${{ secrets.TWELVEDATA_KEY }}
-        run: |
-          python -m scanner.main --${{ github.event.inputs.mode }}
+          # Скрипт внутри scanner/config.py ищет именно это имя переменной!
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }} 
+        run: python -m scanner.main --test
